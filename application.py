@@ -1,5 +1,6 @@
 ''' export API_KEY=pk_571f8972b0824b41af6017d134e6d77a '''
 ''' CREATE TABLE 'purchases' ('id' integer PRIMARY KEY AUTOINCREMENT NOT NULL, 'user_id' integer, 'symbol' text, 'share_price' real, 'num_shares' integer, 'total_cost' real, 'timestamp' timestamp) '''
+''' THIS IS A NEW VERSION '''
 
 import os
 import datetime
@@ -179,7 +180,8 @@ def register():
 @login_required
 def sell():
     """Sell shares of stock"""
-    return apology("TODO")
+    stocks = db.execute("SELECT symbol FROM purchases WHERE user_id = ? GROUP BY symbol", session["user_id"])
+    return render_template("sell.html", stocks=stocks)
 
 
 def errorhandler(e):
