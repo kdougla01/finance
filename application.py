@@ -183,6 +183,7 @@ def sell():
     stocks = db.execute("SELECT symbol FROM purchases WHERE user_id = ? GROUP BY symbol", session["user_id"])
 
     if request.method == "POST":
+
         currentTime = datetime.datetime.now()
         symbol = request.form.get("symbol")
         numOfShares = request.form.get("shares")
@@ -193,7 +194,7 @@ def sell():
 
         # This section will calculate the value of the shares and add to the user's balance.
         valueOfShares = int(numOfShares) * price
-        balance = cashValue + costOfShares
+        balance = cashValue + valueOfShares
 
         # This will check the value of the shares is not 0 or lower
         if valueOfShares <= 0:
@@ -207,6 +208,8 @@ def sell():
 
 
             return render_template("sold.html", symbol=symbol, balance=balance, valueOfShares=valueOfShares, sold=sold, numOfShares=numOfShares, cash=cash[0]["cash"])
+
+
     return render_template("sell.html", stocks=stocks)
 
 
