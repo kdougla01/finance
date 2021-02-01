@@ -181,7 +181,39 @@ def register():
 def sell():
     """Sell shares of stock"""
     stocks = db.execute("SELECT symbol FROM purchases WHERE user_id = ? GROUP BY symbol", session["user_id"])
+
+    if request.method == "POST":
+        currentTime = datetime.datetime.now()
+        symbol = request.form.get("symbol")
+        numOfShares = request.form.get("shares")
+        sold = lookup(symbol)
+        price=sold["price"]
+        cash = db.execute("SELECT cash FROM users WHERE id = ?", session["user_id"])
+        cashValue = float(cash[0]["cash"])
+
+        # This section will calculate the value of the shares and add to the user's balance.
+        valueOfShares = int(numOfShares) * price
+        balance = cashValue + costOfShares
+
+        # This will check the value of the shares is not 0 or lower
+        if valueOfShares <= 0:
+            return apology("Your shares are worthless!")
+        else:
+            # implement an INSERT on database to track the sale of the shares
+            sale = db.execute("INSERT INTO sales (user_id, symbol, share_price, num_shares, total_value, timestamp) VALUES(?, ?, ?, ?, ?, ?)", \
+                                session["user_id"], symbol, price, numOfShares, valueOfShares, currentTime)
+
+            newBalance = db.execute("UPDATE users SET cash = ? WHERE id = ?", balance, session["user_id"])
+
+
+            return render_template("sold.html", symbol=symbol, balance=balance, valueOfShares=valueOfShares, sold=sold, numOfShares=numOfShares, cash=cash[0]["cash"])
     return render_template("sell.html", stocks=stocks)
+
+
+
+
+
+
 
 
 def errorhandler(e):
