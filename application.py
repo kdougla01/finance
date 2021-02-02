@@ -54,7 +54,7 @@ def index():
     """Show portfolio of stocks"""
 
     # Queries purchases table and returns a grouped value for each unique stock.
-    groups = db.execute("SELECT symbol, SUM(num_shares) AS sum FROM purchases WHERE user_id = ? GROUP BY symbol", session["user_id"])
+    groups = db.execute("SELECT symbol, SUM(num_shares) AS sum FROM transactions WHERE user_id = ? GROUP BY symbol", session["user_id"])
     cash = db.execute("SELECT cash FROM users WHERE id = ?", session["user_id"])
     cashValue = float(cash[0]["cash"])
 
@@ -74,6 +74,7 @@ def buy():
         price=bought["price"]
         cash = db.execute("SELECT cash FROM users WHERE id = ?", session["user_id"])
         cashValue = float(cash[0]["cash"])
+        trans_type = "BUY"
 
         # This section will calculate the cost of the shares and subtract from the user's balance.
         costOfShares = int(numOfShares) * price
@@ -84,8 +85,8 @@ def buy():
             return apology("Your balance is too low!")
         else:
             # implement an INSERT on database to track the purchase of the shares
-            purchase = db.execute("INSERT INTO purchases (user_id, symbol, share_price, num_shares, total_cost, timestamp) VALUES(?, ?, ?, ?, ?, ?)", \
-                                session["user_id"], symbol, price, numOfShares, costOfShares, currentTime)
+            purchase = db.execute("INSERT INTO transactions (user_id, symbol, share_price, num_shares, total_cost, timestamp, trans_type) VALUES(?, ?, ?, ?, ?, ?, ?)", \
+                                session["user_id"], symbol, price, numOfShares, costOfShares, currentTime, trans_type)
 
             newBalance = db.execute("UPDATE users SET cash = ? WHERE id = ?", balance, session["user_id"])
 
@@ -180,7 +181,7 @@ def register():
 @login_required
 def sell():
     """Sell shares of stock"""
-    stocks = db.execute("SELECT symbol FROM purchases WHERE user_id = ? GROUP BY symbol", session["user_id"])
+    stocks = db.execute("SELECT symbol FROM transactions WHERE user_id = ? GROUP BY symbol", session["user_id"])
 
     if request.method == "POST":
 
@@ -201,7 +202,7 @@ def sell():
             return apology("Your shares are worthless!")
         else:
             # implement an INSERT on database to track the sale of the shares
-            sale = db.execute("INSERT INTO sales (user_id, symbol, share_price, num_shares, total_value, timestamp) VALUES(?, ?, ?, ?, ?, ?)", \
+            sale = db.execute("INSERT INTO transactions (user_id, symbol, share_price, num_shares, total_value, timestamp) VALUES(?, ?, ?, ?, ?, ?)", \
                                 session["user_id"], symbol, price, numOfShares, valueOfShares, currentTime)
 
             newBalance = db.execute("UPDATE users SET cash = ? WHERE id = ?", balance, session["user_id"])
