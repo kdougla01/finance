@@ -100,7 +100,13 @@ def buy():
 @login_required
 def history():
     """Show history of transactions"""
-    return apology("TODO")
+    # Queries purchases table and returns a grouped value for each unique stock.
+    groups = db.execute("SELECT * FROM transactions WHERE user_id = ?", session["user_id"])
+    cash = db.execute("SELECT cash FROM users WHERE id = ?", session["user_id"])
+    cashValue = float(cash[0]["cash"])
+
+
+    return render_template("history.html", groups=groups, cashValue=cashValue)
 
 
 @app.route("/login", methods=["GET", "POST"])
